@@ -5,7 +5,7 @@ use crate::moves::Move;
 
 #[derive(Clone, Copy)]
 pub struct Board {
-    bb: [u128; Piece::COUNT + 2],          // bitboards for each piece (0-13) and side (14-15)
+    bb: [u128; Piece::COUNT + 2],          // bitboards for each piece type (0-13) and side (14-15)
     pcs: [Option<Piece>; Square::COUNT],   // piece type on each square
     hand: [Hand; 2],                       // pieces in hand for each side
     moves: u8,                             // number of moves made
