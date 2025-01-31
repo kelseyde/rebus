@@ -17,7 +17,7 @@ pub enum Piece {
 }
 
 impl Piece {
-    pub const COUNT: usize = 14;        // All piece types (including promos and king)
+    pub const COUNT: usize = 14;
 
     pub fn idx(&self) -> usize {
         *self as usize
@@ -33,6 +33,10 @@ impl Piece {
             Piece::Rook =>   Some(Piece::PromotedRook),
             _ => None,
         }
+    }
+
+    pub fn can_promote(&self) -> bool {
+        self.to_promo_piece().is_some()
     }
 }
 
@@ -60,17 +64,25 @@ impl From<u8> for Piece {
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Side {
-    First,
-    Second,
+    Sente,
+    Gote,
 }
 
 impl Side {
 
     pub fn flip(&self) -> Side {
         match self {
-            Side::First => Side::Second,
-            Side::Second => Side::First,
+            Side::Sente => Side::Gote,
+            Side::Gote => Side::Sente,
         }
+    }
+
+    pub fn is_sente(&self) -> bool {
+        *self == Side::Sente
+    }
+
+    pub fn is_gote(&self) -> bool {
+        *self == Side::Gote
     }
 
     pub const fn idx(&self) -> usize {
@@ -80,6 +92,19 @@ impl Side {
 }
 
 pub struct Square {}
+
 impl Square {
     pub const COUNT: usize = 81;
+
+    pub fn of(rank: u8, file: u8) -> u8 {
+        rank * 9 + file
+    }
+
+    pub fn file(sq: u8) -> u8 {
+        sq % 9
+    }
+
+    pub fn rank(sq: u8) -> u8 {
+        sq / 9
+    }
 }
