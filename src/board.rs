@@ -1,6 +1,6 @@
 use crate::bits;
-use crate::consts::{Side, Square};
 use crate::consts::Piece;
+use crate::consts::{Side, Square};
 use crate::moves::Move;
 
 #[derive(Clone, Copy)]
@@ -76,8 +76,6 @@ impl Board {
     }
 
     pub fn lances(&self, side: Side) -> u128 {
-        println!("lances");
-        bits::print(self.bb[side.idx() + Piece::COUNT]);
         self.bb[Piece::Lance.idx()]
             & self.bb[side.idx() + Piece::COUNT]
     }
@@ -151,16 +149,9 @@ impl Board {
     }
 
     pub fn add_piece(&mut self, side: Side, piece: Piece, sq: u8) {
-        println!("add_piece: side: {:?}, piece: {:?}, sq: {}", side, piece, sq);
         let bb = bits::bb(sq);
         self.bb[piece.idx()] |= bb;
-        println!("piece bb:");
-        bits::print(self.bb[piece.idx()]);
-        println!();
         self.bb[side.idx() + Piece::COUNT] |= bb;
-        println!("side bb:");
-        bits::print(self.bb[side.idx() + Piece::COUNT]);
-        println!();
         self.pcs[sq as usize] = Some(piece);
     }
 

@@ -23,44 +23,47 @@ impl Board {
             let mut file_idx = 0;
             let chars = rank.chars().collect::<Vec<char>>();
 
-            for char_idx in 0..chars.len() {
+            let mut char_idx = 0;
+            while char_idx < chars.len() {
                 let char = chars[char_idx];
                 if char.is_numeric() {
                     file_idx += char.to_digit(10).unwrap() as u8;
                 }
-                else if char.eq(&'+') {
-                    if char_idx == chars.len() - 1 {
+                else if char == '+' {
+                    if char_idx + 1 >= chars.len() {
                         return Err("SFEN has invalid promotion character");
                     }
                     let piece_str = &rank[char_idx..char_idx + 2];
                     let piece_char = piece_str.chars().nth(1).unwrap();
                     let side = if piece_char.is_uppercase() { Side::Sente } else { Side::Gote };
                     let piece = Piece::from_str(piece_str);
-                    if piece.is_some() {
+                    if let Some(piece) = piece {
                         let sq = Square::of(8 - rank_idx as u8, file_idx);
-                        board.add_piece(side, piece.unwrap(), sq);
+                        board.add_piece(side, piece, sq);
                         file_idx += 1;
-                        rank_idx += 1;
+                        char_idx += 2;
+                        continue;
                     } else {
                         return Err("SFEN has invalid piece character");
                     }
-                } else {
+                }
+                else {
                     let piece = Piece::from_str(&char.to_string());
                     let side = if char.is_uppercase() { Side::Sente } else { Side::Gote };
-                    if piece.is_some() {
+                    if let Some(piece) = piece {
                         let sq = Square::of(8 - rank_idx as u8, file_idx);
-                        board.add_piece(side, piece.unwrap(), sq);
+                        board.add_piece(side, piece, sq);
                         file_idx += 1;
                     } else {
                         return Err("SFEN has invalid piece character");
                     }
                 }
+                char_idx += 1;
             }
 
             if file_idx != 9 {
                 return Err("SFEN has invalid number of files");
             }
-
         }
 
         let stm_part = parts[1];
@@ -68,8 +71,8 @@ impl Board {
             return Err("SFEN has invalid side to move");
         }
         match stm_part {
-            "b" => board.set_stm(Side::Gote),
-            "w" => board.set_stm(Side::Sente),
+            "b" => board.set_stm(Side::Sente),
+            "w" => board.set_stm(Side::Gote),
             _ => return Err("SFEN has invalid side to move")
         };
 
@@ -97,38 +100,40 @@ impl Board {
         let mut sfen = String::new();
 
         for rank in (0..9).rev() {
+            let mut empty_squares = 0;
+
             for file in 0..9 {
                 let sq = Square::of(rank, file);
                 match self.piece_at(sq) {
                     Some(piece) => {
+                        if empty_squares > 0 {
+                            sfen.push_str(&empty_squares.to_string());
+                            empty_squares = 0;
+                        }
                         let side = self.side_at(sq).expect("Square should be occupied");
                         sfen.push_str(&piece.to_str(side));
                     },
                     None => {
-                        let mut empty_squares = 0;
-                        for i in 1..9 {
-                            let next_sq = Square::of(rank, file + i);
-                            if self.piece_at(next_sq).is_none() {
-                                empty_squares += 1;
-                            } else {
-                                break;
-                            }
-                        }
-                        sfen.push_str(&empty_squares.to_string());
+                        empty_squares += 1;
                     }
                 }
+            }
+
+            // If the rank ends with empty squares, append the count
+            if empty_squares > 0 {
+                sfen.push_str(&empty_squares.to_string());
             }
             if rank > 0 {
                 sfen.push('/');
             }
         }
 
-        let stm = if self.stm().is_sente() { " w " } else { " b " };
+        let stm = if self.stm().is_sente() { " b " } else { " w " };
         sfen.push_str(stm);
 
         let sente_hand = self.hand(Side::Sente);
         let gote_hand = self.hand(Side::Gote);
-        if (sente_hand.is_empty() && gote_hand.is_empty()) {
+        if sente_hand.is_empty() && gote_hand.is_empty() {
             sfen.push_str("-");
         } else {
             sfen.push_str(&sente_hand.to_sfen(Side::Sente));
@@ -136,7 +141,6 @@ impl Board {
         }
 
         sfen.push(' ');
-
         sfen.push_str(&self.moves().to_string());
 
         sfen
@@ -161,8 +165,8 @@ impl Hand {
 
     pub fn to_sfen(&self, side: Side) -> String {
         let mut sfen = String::new();
-        for idx in self.pieces.iter() {
-            let piece = Piece::from(*idx);
+        for idx in 0..self.pieces.len() {
+            let piece = Piece::from(idx as u8);
             let count = self.pieces[piece.idx()];
             let piece_str = piece.to_str(side);
             for _ in 0..count {
@@ -197,7 +201,7 @@ impl Piece {
     }
 
     pub fn to_str(&self, side: Side) -> String {
-        let mut piece = match self {
+        let piece = match self {
             Piece::Pawn => "P",
             Piece::Lance => "L",
             Piece::Knight => "N",
@@ -224,22 +228,22 @@ impl Piece {
 
 #[cfg(test)]
 mod test {
-    use crate::bits;
     use crate::board::Board;
-    use crate::consts::Side;
 
     #[test]
-    pub fn test_startpos() {
-        let sfens: [&str; 1] = [
+    pub fn test_parse_sfens() {
+        let sfens: [&str; 7] = [
+            "9/9/9/9/9/9/9/9/9 b - 0",
             "lnsgkgsnl/1r5b1/ppppppppp/9/9/9/PPPPPPPPP/1B5R1/LNSGKGSNL b - 1",
-            //"lnsgk2nl/1r4gs1/p1pppp1pp/1p4p2/7P1/2P6/PP1PPPP1P/1SG4R1/LN2KGSNL b Bb"
+            "lnsgk2nl/1r4gs1/p1pppp1pp/1p4p2/7P1/2P6/PP1PPPP1P/1SG4R1/LN2KGSNL b Bb 12",
+            "lnsgkg1n1/4rs1bl/1+Ppp1pppp/p8/5P3/9/P1PP+p1PPP/1B3S2R/LNSGKG1NL w Pp 18",
+            "+P+P+P+P+P+P+P+P+P/9/9/9/9/9/9/9/9 w - 50",
+            "lnsgkgsnl/9/9/9/9/9/9/9/LNSGKGSNL b - 30",
+            "lnsgkgsnl/1r5b1/ppppppppp/9/9/9/PPPPPPPPP/1B5R1/LNSGKGSNL w - 10",
         ];
         for sfen in sfens.iter() {
             match Board::from_sfen(sfen.to_string()) {
-                Ok(board) => {
-                    println!("{}", board.to_sfen());
-                    assert_eq!(*sfen, board.to_sfen().as_str());
-                },
+                Ok(board) => assert_eq!(*sfen, board.to_sfen().as_str()),
                 Err(e) => panic!("Error parsing SFEN: {}", e)
             }
         }

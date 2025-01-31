@@ -20,10 +20,6 @@ pub const fn count(b: u128) -> u8 {
 
 #[inline]
 pub const fn bb(sq: u8) -> u128 {
-    if (sq >= 81) {
-        panic!("Invalid square");
-    }
-    assert!(sq < 81);
     1 << sq
 }
 
@@ -36,19 +32,4 @@ pub fn print(bb: u128) {
         }
         println!();
     }
-}
-
-#[cfg(test)]
-mod test {
-
-    #[test]
-    fn test() {
-        let bb = super::bb(0);
-        super::print(bb);
-        println!("{:b}", bb);
-        let bb = super::bb(30);
-        super::print(bb);
-        println!("{:b}", bb);
-    }
-
 }
