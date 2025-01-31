@@ -1,6 +1,6 @@
 use crate::bits;
-use crate::consts::{Side, Square};
 use crate::consts::Piece;
+use crate::consts::{Side, Square};
 use crate::moves::Move;
 
 #[derive(Clone, Copy)]
@@ -24,7 +24,7 @@ impl Board {
             bb: [0; Piece::COUNT + 2],
             pcs: [None; Square::COUNT],
             hand: [Hand::new(), Hand::new()],
-            stm: Side::First,
+            stm: Side::Sente,
             moves: 0
         }
     }
@@ -55,6 +55,10 @@ impl Board {
 
     pub fn stm(&self) -> Side {
         self.stm
+    }
+
+    pub fn moves(&self) -> u8 {
+        self.moves
     }
 
     pub fn hand(&self, side: Side) -> &Hand {
@@ -110,15 +114,21 @@ impl Board {
     }
 
     pub fn occ(&self) -> u128 {
-        self.bb[Side::First.idx() + Piece::COUNT]
-            | self.bb[Side::Second.idx() + Piece::COUNT]
+        self.bb[Side::Sente.idx() + Piece::COUNT]
+            | self.bb[Side::Gote.idx() + Piece::COUNT]
     }
 
     pub fn piece_at(&self, sq: u8) -> Option<Piece> {
         self.pcs[sq as usize]
     }
 
-    fn drop_piece(&mut self, side: Side, piece: Piece, sq: u8) {
+    pub fn side_at(&self, sq: u8) -> Option<Side> {
+        if self.bb[Side::Sente.idx() + Piece::COUNT] & bits::bb(sq) != 0 { Some(Side::Sente) }
+        else if self.bb[Side::Gote.idx() + Piece::COUNT] & bits::bb(sq) != 0 { Some(Side::Gote) }
+        else { None }
+    }
+
+    pub fn drop_piece(&mut self, side: Side, piece: Piece, sq: u8) {
         let bb = bits::bb(sq);
         self.bb[piece.idx()] |= bb;
         self.bb[side.idx() + Piece::COUNT] |= bb;
@@ -127,7 +137,7 @@ impl Board {
         self.stm = side.flip();
     }
 
-    fn move_piece(&mut self, side: Side, src_piece: Piece, dst_piece: Piece, src: u8, dst: u8) {
+    pub fn move_piece(&mut self, side: Side, src_piece: Piece, dst_piece: Piece, src: u8, dst: u8) {
         let src_bb = bits::bb(src);
         let dst_bb = bits::bb(dst);
         self.bb[src_piece.idx()] ^= src_bb;
@@ -138,11 +148,30 @@ impl Board {
         self.stm = side.flip();
     }
 
-    fn remove_piece(&mut self, side: Side, piece: Piece, sq: u8) {
+    pub fn add_piece(&mut self, side: Side, piece: Piece, sq: u8) {
+        let bb = bits::bb(sq);
+        self.bb[piece.idx()] |= bb;
+        self.bb[side.idx() + Piece::COUNT] |= bb;
+        self.pcs[sq as usize] = Some(piece);
+    }
+
+    pub fn remove_piece(&mut self, side: Side, piece: Piece, sq: u8) {
         let bb = bits::bb(sq);
         self.bb[piece.idx()] ^= bb;
         self.bb[side.idx() + Piece::COUNT] ^= bb;
         self.pcs[sq as usize] = None;
+    }
+
+    pub fn set_stm(&mut self, side: Side) {
+        self.stm = side;
+    }
+
+    pub fn set_moves(&mut self, moves: u8) {
+        self.moves = moves;
+    }
+
+    pub fn set_hand(&mut self, side: Side, hand: Hand) {
+        self.hand[side.idx()] = hand;
     }
 
 }
