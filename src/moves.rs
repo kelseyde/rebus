@@ -5,11 +5,7 @@ use crate::consts::Piece;
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Move(u16);
 
-#[derive(Clone)]
-pub struct MoveList {
-    pub list: ArrayVec<Move, 600>,
-    pub len: usize,
-}
+pub type MoveList = ArrayVec<Move, 600>;
 
 impl Move {
 
@@ -54,27 +50,6 @@ impl Move {
         } else {
             None
         }
-    }
-
-}
-
-impl MoveList {
-
-    pub fn new() -> Self {
-        MoveList { list: ArrayVec::new(), len: 0 }
-    }
-
-    // pub fn add_move(&mut self, from: u8, to: u8, flag: MoveFlag) {
-    //     self.list.push(Move::new(from, to, flag));
-    //     self.len += 1;
-    // }
-
-    pub fn iter(&self) -> impl Iterator<Item = &Move> {
-        self.list.iter().take(self.len)
-    }
-
-    pub fn is_empty(&self) -> bool {
-        self.len == 0
     }
 
 }

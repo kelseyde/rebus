@@ -29,7 +29,7 @@ impl Board {
         }
     }
 
-    pub fn make(&mut self, mv: Move) {
+    pub fn make(&mut self, mv: &Move) {
 
         if mv.is_drop() {
             let sq = mv.dst();
@@ -53,66 +53,131 @@ impl Board {
 
     }
 
+    #[inline]
     pub fn stm(&self) -> Side {
         self.stm
     }
 
+    #[inline]
     pub fn moves(&self) -> u8 {
         self.moves
     }
 
+    #[inline]
     pub fn hand(&self, side: Side) -> &Hand {
         &self.hand[side.idx()]
     }
 
+    #[inline]
+    pub fn pieces(&self, piece: Piece, side: Side) -> u128 {
+        self.bb[piece.idx()]
+            & self.bb[side.idx() + Piece::COUNT]
+    }
+
+    #[inline]
     pub fn pawns(&self, side: Side) -> u128 {
-        self.bb[Piece::Pawn.idx()]
-            & self.bb[side.idx() + Piece::COUNT]
+        self.pieces(Piece::Pawn, side)
     }
 
+    #[inline]
     pub fn knights(&self, side: Side) -> u128 {
-        self.bb[Piece::Knight.idx()]
-            & self.bb[side.idx() + Piece::COUNT]
+        self.pieces(Piece::Knight, side)
     }
 
+    #[inline]
     pub fn lances(&self, side: Side) -> u128 {
-        self.bb[Piece::Lance.idx()]
-            & self.bb[side.idx() + Piece::COUNT]
+        self.pieces(Piece::Lance, side)
     }
 
+    #[inline]
     pub fn bishops(&self, side: Side) -> u128 {
-        self.bb[Piece::Bishop.idx()]
-            & self.bb[side.idx() + Piece::COUNT]
+        self.pieces(Piece::Bishop, side)
     }
 
+    #[inline]
     pub fn rooks(&self, side: Side) -> u128 {
-        self.bb[Piece::Rook.idx()]
-            & self.bb[side.idx() + Piece::COUNT]
+        self.pieces(Piece::Rook, side)
     }
 
+    #[inline]
     pub fn silvers(&self, side: Side) -> u128 {
-        self.bb[Piece::Silver.idx()]
-            & self.bb[side.idx() + Piece::COUNT]
+        self.pieces(Piece::Silver, side)
     }
 
+    #[inline]
     pub fn golds(&self, side: Side) -> u128 {
-        self.bb[Piece::Gold.idx()]
-            & self.bb[side.idx() + Piece::COUNT]
+        self.pieces(Piece::Gold, side)
+    }
+
+    #[inline]
+    pub fn promoted_pawns(&self, side: Side) -> u128 {
+        self.pieces(Piece::PromotedPawn, side)
+    }
+
+    #[inline]
+    pub fn promoted_lances(&self, side: Side) -> u128 {
+        self.pieces(Piece::PromotedLance, side)
+    }
+
+    #[inline]
+    pub fn promoted_knights(&self, side: Side) -> u128 {
+        self.pieces(Piece::PromotedKnight, side)
+    }
+
+    #[inline]
+    pub fn promoted_silvers(&self, side: Side) -> u128 {
+        self.pieces(Piece::PromotedSilver, side)
+    }
+
+    #[inline]
+    pub fn promoted_bishops(&self, side: Side) -> u128 {
+        self.pieces(Piece::PromotedBishop, side)
+    }
+
+    #[inline]
+    pub fn promoted_rooks(&self, side: Side) -> u128 {
+        self.pieces(Piece::PromotedRook, side)
+    }
+
+    #[inline]
+    pub fn king_likes(&self, side: Side) -> u128 {
+        self.king(side) | self.promoted_bishops(side) | self.promoted_rooks(side)
+    }
+
+    #[inline]
+    pub fn bishop_likes(&self, side: Side) -> u128 {
+        self.bishops(side) | self.promoted_bishops(side)
+    }
+
+    #[inline]
+    pub fn rook_likes(&self, side: Side) -> u128 {
+        self.rooks(side) | self.promoted_rooks(side)
+    }
+
+    #[inline]
+    pub fn gold_likes(&self, side: Side) -> u128 {
+        self.golds(side)
+            | self.promoted_pawns(side)
+            | self.promoted_lances(side)
+            | self.promoted_knights(side)
+            | self.promoted_silvers(side)
     }
 
     pub fn king(&self, side: Side) -> u128 {
-        self.bb[Piece::King.idx()]
-            & self.bb[side.idx() + Piece::COUNT]
+        self.pieces(Piece::King, side)
     }
 
+    #[inline]
     pub fn king_sq(&self, side: Side) -> u8 {
         bits::lsb(self.king(side))
     }
 
+    #[inline]
     pub fn side(&self, side: Side) -> u128 {
         self.bb[side.idx() + Piece::COUNT]
     }
 
+    #[inline]
     pub fn occ(&self) -> u128 {
         self.bb[Side::Sente.idx() + Piece::COUNT]
             | self.bb[Side::Gote.idx() + Piece::COUNT]
@@ -181,22 +246,27 @@ impl Hand {
         Hand { pieces: [0; 7] }
     }
 
+    #[inline]
     pub fn count(&self, piece: Piece) -> u8 {
         self.pieces[piece.idx()]
     }
 
+    #[inline]
     pub fn add(&mut self, piece: Piece) {
         self.pieces[piece.idx()] += 1;
     }
 
+    #[inline]
     pub fn remove(&mut self, piece: Piece) {
         self.pieces[piece.idx()] -= 1;
     }
 
+    #[inline]
     pub fn has(&self, piece: Piece) -> bool {
         self.pieces[piece.idx()] > 0
     }
 
+    #[inline]
     pub fn is_empty(&self) -> bool {
         self.pieces.iter().all(|&x| x == 0)
     }

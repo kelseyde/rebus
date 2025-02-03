@@ -1,3 +1,5 @@
+pub const STARTPOS: &str = "lnsgkgsnl/1r5b1/ppppppppp/9/9/9/PPPPPPPPP/1B5R1/LNSGKGSNL b - 1";
+
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Piece {
     Pawn,
@@ -96,15 +98,37 @@ pub struct Square {}
 impl Square {
     pub const COUNT: usize = 81;
 
-    pub fn of(rank: u8, file: u8) -> u8 {
+    pub const DELTA_N: i8 = 9;
+    pub const DELTA_E: i8 = 1;
+    pub const DELTA_S: i8 = -9;
+    pub const DELTA_W: i8 = -1;
+    pub const DELTA_NE: i8 = Square::DELTA_N + Square::DELTA_E;
+    pub const DELTA_SE: i8 = Square::DELTA_S + Square::DELTA_E;
+    pub const DELTA_SW: i8 = Square::DELTA_S + Square::DELTA_W;
+    pub const DELTA_NW: i8 = Square::DELTA_N + Square::DELTA_W;
+
+    #[inline]
+    pub const fn of(rank: u8, file: u8) -> u8 {
         rank * 9 + file
     }
 
-    pub fn file(sq: u8) -> u8 {
+    #[inline]
+    pub const fn file(sq: u8) -> u8 {
         sq % 9
     }
 
-    pub fn rank(sq: u8) -> u8 {
+    #[inline]
+    pub const fn rank(sq: u8) -> u8 {
         sq / 9
     }
+
+    #[inline]
+    pub const fn is_valid(sq: u8) -> bool {
+        sq >= 0 && sq < 81
+    }
+
+    pub fn iter() -> impl Iterator<Item = u8> {
+        (0..81).map(|sq| sq as u8)
+    }
+
 }

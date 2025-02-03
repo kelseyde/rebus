@@ -1,4 +1,5 @@
-use crate::consts::{Side, Square};
+use std::collections::HashMap;
+use crate::consts::{Piece, Side, Square};
 
 pub const ALL: u128 = (1 << 81) - 1;
 pub const NONE: u128 = 0;
@@ -26,6 +27,8 @@ pub const FILE_1: u128 = FILE_9 << 8;
 pub const FILES: [u128; 9] = [FILE_9, FILE_8, FILE_7, FILE_6, FILE_5, FILE_4, FILE_3, FILE_2, FILE_1];
 
 pub const PROMO_ZONE: [u128; 2] = [RANK_A | RANK_B | RANK_C, RANK_G | RANK_H | RANK_I];
+pub const MUST_PROMO_ZONE_PAWN: [u128; 2] = [RANK_A, RANK_I];
+pub const MUST_PROMO_ZONE_KNIGHT: [u128; 2] = [RANK_A | RANK_B, RANK_H | RANK_I];
 
 #[inline]
 pub const fn pop(b: u128) -> u128 {
@@ -40,6 +43,16 @@ pub const fn lsb(b: u128) -> u8 {
 #[inline]
 pub const fn count(b: u128) -> u8 {
     b.count_ones() as u8
+}
+
+#[inline]
+pub const fn contains(bb: u128, sq: u8) -> bool {
+    (bb >> sq) & 1 == 1
+}
+
+#[inline]
+pub const fn merge(bb: u128) -> u64 {
+    (bb & 0xFFFFFFFFFFFFFFFF) as u64 | ((bb >> 64) as u64)
 }
 
 #[inline]
@@ -87,8 +100,27 @@ pub const fn south_west(bb: u128) -> u128 {
     (bb >> 10) & !FILE_1
 }
 
-pub const fn promo_zone(side: Side) -> u128 {
+#[inline]
+pub fn file(sq: u8) -> u128 {
+    FILES[Square::file(sq) as usize]
+}
+
+#[inline]
+pub fn rank(sq: u8) -> u128 {
+    RANKS[Square::rank(sq) as usize]
+}
+
+#[inline]
+pub fn promo_zone(side: Side) -> u128 {
     PROMO_ZONE[side as usize]
+}
+
+pub const fn must_promo_zone(piece: Piece, side: Side) -> u128 {
+    match piece {
+        Piece::Pawn => MUST_PROMO_ZONE_PAWN[side as usize],
+        Piece::Knight => MUST_PROMO_ZONE_KNIGHT[side as usize],
+        _ => NONE,
+    }
 }
 
 pub fn print(bb: u128) {

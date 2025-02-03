@@ -1,8 +1,31 @@
-use crate::bits;
-use crate::consts::Side;
+use crate::{bits, magics};
+use crate::consts::{Piece, Side};
+
+pub fn attacks(sq: u8, piece: Piece, side: Side, occ: u128) -> u128 {
+    match piece {
+        Piece::Pawn => pawns(bits::bb(sq), side),
+        Piece::Lance => lance(sq, side, occ),
+        Piece::Knight => knight(sq, side),
+        Piece::Silver => silver(sq, side),
+        Piece::Gold => gold(sq, side),
+        Piece::Bishop => bishop(sq, occ),
+        Piece::Rook => rook(sq, occ),
+        Piece::King => king(sq),
+        Piece::PromotedPawn => gold(sq, side),
+        Piece::PromotedLance => gold(sq, side),
+        Piece::PromotedKnight => gold(sq, side),
+        Piece::PromotedSilver => gold(sq, side),
+        Piece::PromotedBishop => horse(sq, occ),
+        Piece::PromotedRook => dragon(sq, occ),
+    }
+}
 
 pub fn king(sq: u8) -> u128 {
     KING_ATTACKS[sq as usize]
+}
+
+pub fn pawn(sq: u8, side: Side) -> u128 {
+    pawns(bits::bb(sq), side)
 }
 
 pub fn pawns(bb: u128, side: Side) -> u128 {
@@ -16,27 +39,25 @@ pub fn knight(sq: u8, side: Side) -> u128 {
     KNIGHT_ATTACKS[side.idx()][sq as usize]
 }
 
-pub fn lance(sq: u8) -> u128 {
+pub fn lance(sq: u8, side: Side, occ: u128) -> u128 {
     //TODO
     0
 }
 
-pub fn bishop(sq: u8) -> u128 {
-    //TODO
-    0
+pub fn bishop(sq: u8, occ: u128) -> u128 {
+    magics::BISHOP_MAGICS_TABLE.magic(sq).attack(occ)
 }
 
-pub fn rook(sq: u8) -> u128 {
-    //TODO
-    0
+pub fn rook(sq: u8, occ: u128) -> u128 {
+    magics::ROOK_MAGICS_TABLE.magic(sq).attack(occ)
 }
 
-pub fn horse(sq: u8) -> u128 {
-    king(sq) | bishop(sq)
+pub fn horse(sq: u8, occ: u128) -> u128 {
+    king(sq) | bishop(sq, occ)
 }
 
-pub fn dragon(sq: u8) -> u128 {
-    king(sq) | rook(sq)
+pub fn dragon(sq: u8,occ: u128) -> u128 {
+    king(sq) | rook(sq, occ)
 }
 
 pub fn silver(sq: u8, side: Side) -> u128 {
