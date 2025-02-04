@@ -36,19 +36,19 @@ impl<'a> Magic<'a> {
     fn attack_mask(deltas: &[i8], sq: u8) -> u128 {
         let occ = bits::NONE;
         let mut bb = sliding_attacks(deltas, sq, occ);
-        let file = bits::file(sq);
-        let rank = bits::rank(sq);
-        if file != bits::FILE_1 {
+        let file = Square::file(sq);
+        let rank = Square::rank(sq);
+        if file != 0 {
             bb &= !bits::FILE_1;
         }
-        if file != bits::FILE_9 {
+        if file != 8 {
             bb &= !bits::FILE_9;
         }
-        if rank != bits::RANK_I {
-            bb &= !bits::RANK_I;
-        }
-        if rank != bits::RANK_A {
+        if rank != 0 {
             bb &= !bits::RANK_A;
+        }
+        if rank != 8 {
+            bb &= !bits::RANK_I;
         }
         bb
     }
@@ -131,7 +131,7 @@ impl<'a> MagicTable<'a> {
 }
 
 
-pub fn sliding_attacks(deltas: &[i8], sq: u8, occupied: u128) -> u128 {
+pub fn sliding_attacks(deltas: &[i8], sq: u8, occ: u128) -> u128 {
     let mut bb: u128 = 0;
 
     for &delta in deltas {
@@ -144,7 +144,7 @@ pub fn sliding_attacks(deltas: &[i8], sq: u8, occupied: u128) -> u128 {
             {
                 bb |= 1 << sq_tmp;
 
-                if (occupied & (1 << sq_tmp)) != 0 {
+                if bits::contains(occ, sq_tmp) {
                     break;
                 }
 
@@ -169,8 +169,8 @@ pub fn checked_add(sq: u8, delta: i8) -> Option<u8> {
     }
 }
 
-const BISHOP_DELTAS: [i8; 4] = [Square::DELTA_NE, Square::DELTA_SE, Square::DELTA_SW, Square::DELTA_NW];
-const ROOK_DELTAS: [i8; 4] = [Square::DELTA_N, Square::DELTA_E, Square::DELTA_S, Square::DELTA_W];
+pub const BISHOP_DELTAS: [i8; 4] = [Square::DELTA_NE, Square::DELTA_SE, Square::DELTA_SW, Square::DELTA_NW];
+pub const ROOK_DELTAS: [i8; 4] = [Square::DELTA_N, Square::DELTA_E, Square::DELTA_S, Square::DELTA_W];
 
 const BISHOP_ATTACK_TABLE_NUM: usize = 20224;
 
