@@ -1,5 +1,5 @@
-use crate::{bits, magics};
 use crate::consts::{Piece, Side};
+use crate::{bits, magics};
 
 pub fn attacks(sq: u8, piece: Piece, side: Side, occ: u128) -> u128 {
     match piece {
@@ -40,16 +40,21 @@ pub fn knight(sq: u8, side: Side) -> u128 {
 }
 
 pub fn lance(sq: u8, side: Side, occ: u128) -> u128 {
-    //TODO
-    0
+    let magic = &magics::LANCE_MAGICS[side.idx()][sq as usize];
+    let idx = magic.index(occ);
+    magics::LANCE_ATTACKS[side.idx()][idx]
 }
 
 pub fn bishop(sq: u8, occ: u128) -> u128 {
-    magics::BISHOP_MAGICS_TABLE.magic(sq).attack(occ)
+    let magic = &magics::BISHOP_MAGICS[sq as usize];
+    let idx = magic.index(occ);
+    magics::BISHOP_ATTACKS[idx]
 }
 
 pub fn rook(sq: u8, occ: u128) -> u128 {
-    magics::ROOK_MAGICS_TABLE.magic(sq).attack(occ)
+    let magic = &magics::ROOK_MAGICS[sq as usize];
+    let idx = magic.index(occ);
+    magics::ROOK_ATTACKS[idx]
 }
 
 pub fn horse(sq: u8, occ: u128) -> u128 {
@@ -182,9 +187,8 @@ pub const GOLD_ATTACKS: [[u128; 81]; 2] = [
 
 #[cfg(test)]
 mod test {
-    use crate::{attacks, bits};
-    use crate::bits::bb;
     use crate::consts::Side;
+    use crate::{attacks, bits};
 
     #[test]
     pub fn knight() {

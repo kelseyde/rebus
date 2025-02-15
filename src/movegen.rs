@@ -1,7 +1,7 @@
-use crate::{attacks, bits};
 use crate::board::Board;
 use crate::consts::{Piece, Side};
 use crate::moves::{Move, MoveList};
+use crate::{attacks, bits};
 
 impl Board {
 

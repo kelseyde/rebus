@@ -1,7 +1,5 @@
 use crate::attacks::attacks;
-use crate::board::Board;
-use crate::consts::{Piece, Side, Square};
-use crate::magics::sliding_attacks;
+use crate::consts::Side;
 
 mod board;
 mod consts;
@@ -11,57 +9,50 @@ mod notation;
 mod movegen;
 mod attacks;
 mod ray;
-mod magics;
 mod perft;
-
-fn attack_mask(deltas: &[i8], sq: u8) -> u128 {
-    let occ = bits::NONE;
-    let mut bb = sliding_attacks(deltas, sq, occ);
-    let file = Square::file(sq);
-    let rank = Square::rank(sq);
-    // if file != 8 {
-    //     bb &= !bits::FILE_1;
-    // }
-    // if file != 0 {
-    //     bb &= !bits::FILE_9;
-    // }
-    // if rank != 8 {
-    //     bb &= !bits::RANK_A;
-    // }
-    // if rank != 0 {
-    //     bb &= !bits::RANK_I;
-    // }
-    bb
-}
-
-pub struct Bitboard {
-    v: [u64; 2],
-}
-
-
-impl Bitboard {
-    pub fn to_u128(&self) -> u128 {
-        self.v[0] as u128 | (self.v[1] as u128) << 64
-    }
-}
+mod magics;
+mod generator;
 
 fn main() {
-    // let board = Board::from_sfen(consts::STARTPOS.to_string()).unwrap();
-    // let nodes = perft::perft(&board, 1);
-    // println!("Nodes: {}", nodes);
 
-    println!("---");
-    bits::print(attacks(0, Piece::Rook, Side::Sente, 0));
-    println!("---");
-    bits::print(attacks(4, Piece::Rook, Side::Sente, 0));
-    println!("---");
-    bits::print(attacks(8, Piece::Rook, Side::Sente, 0));
-    println!("---");
-    bits::print(attacks(20, Piece::Rook, Side::Sente, 0));
-    println!("---");
-    bits::print(attacks(67, Piece::Rook, Side::Sente, 0));
-    println!("---");
-    bits::print(attacks(79, Piece::Rook, Side::Sente, 0));
-    println!("---");
+    // generator::find_and_print_all_magics(&magics2::ROOK_DELTAS, "ROOK");
+    // generator::find_and_print_all_magics(&magics2::BISHOP_DELTAS, "BISHOP");
+
+    let attacks = attacks::rook(0, 0);
+    bits::print(attacks);
+
+    let attacks = attacks::bishop(0, 0);
+    bits::print(attacks);
+
+    let attacks = attacks::lance(0, Side::Sente, 0);
+    bits::print(attacks);
+
+    let moves = magics::attack_mask(&magics::LANCE_DELTAS[Side::Sente.idx()], 0);
+    bits::print(moves);
+
+    let attacks = attacks::rook(63, 0);
+    bits::print(attacks);
+
+    let attacks = attacks::bishop(63, 0);
+    bits::print(attacks);
+
+    let attacks = attacks::lance(63, Side::Gote, 0);
+    bits::print(attacks);
+
+    let moves = magics::attack_mask(&magics::LANCE_DELTAS[Side::Gote.idx()], 63);
+    bits::print(moves);
+
+    let attacks = attacks::rook(27, 0);
+    bits::print(attacks);
+
+    let attacks = attacks::bishop(27, 0);
+    bits::print(attacks);
+
+    let attacks = attacks::lance(27, Side::Sente, 0);
+    bits::print(attacks);
+    let moves = magics::attack_mask(&magics::LANCE_DELTAS[Side::Sente.idx()], 27);
+    bits::print(moves);
+
+
 
 }

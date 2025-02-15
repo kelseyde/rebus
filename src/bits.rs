@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use crate::consts::{Piece, Side, Square};
 
 pub const ALL: u128 = (1 << 81) - 1;
@@ -50,6 +49,10 @@ pub const fn contains(bb: u128, sq: u8) -> bool {
     (bb >> sq) & 1 == 1
 }
 
+pub const fn empty(bb: u128) -> bool {
+    bb == NONE
+}
+
 #[inline]
 pub const fn merge(bb: u128) -> u64 {
     (bb & 0xFFFFFFFFFFFFFFFF) as u64 | ((bb >> 64) as u64)
@@ -67,7 +70,7 @@ pub const fn north(bb: u128) -> u128 {
 
 #[inline]
 pub const fn south(bb: u128) -> u128 {
-    (bb >> 9)
+    bb >> 9
 }
 
 #[inline]
@@ -124,6 +127,7 @@ pub const fn must_promo_zone(piece: Piece, side: Side) -> u128 {
 }
 
 pub fn print(bb: u128) {
+    println!();
     for rank in (0..9).rev() {
         for file in 0..9 {
             let sq = Square::of(rank, file);
